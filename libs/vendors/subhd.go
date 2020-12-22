@@ -298,7 +298,7 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 		if errOpen != nil {
 			return errOpen
 		}
-		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 		if errOpenFile != nil {
 			return errOpenFile
 		}
