@@ -57,7 +57,7 @@ func main() {
 				return errors.New("请输入正确的ID")
 			}
 
-			if index > int64(len(result.Subtitles)) {
+			if index > int64(len(result.Subtitles)) || index <= 0 {
 				return errors.New("请输入正确的ID")
 			}
 			return nil
@@ -94,7 +94,7 @@ func main() {
 				return errors.New("请输入正确的ID")
 			}
 
-			if index > int64(len(filenames)) {
+			if index > int64(len(filenames)) || index <= 0 {
 				return errors.New("请输入正确的ID")
 			}
 			return nil

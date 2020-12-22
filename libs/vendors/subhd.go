@@ -10,6 +10,8 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/luispater/getsub/common"
+	"github.com/nwaples/rardecode"
+	"github.com/saracen/go7z"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"io"
@@ -221,12 +223,48 @@ func (this *SubHD) GetArchiveFileList(filename string, archiveFile []byte) ([]st
 
 			filenames = append(filenames, string(content))
 		}
+	case ".7z":
+		r, err := go7z.NewReader(bytes.NewReader(archiveFile), int64(len(archiveFile)))
+		if err != nil {
+			return nil, err
+		}
+		for {
+			hdr, errNext := r.Next()
+			if errNext == io.EOF {
+				break
+			}
+			if errNext != nil {
+				continue
+			}
+			filenames = append(filenames, hdr.Name)
+		}
+	case ".rar":
+		r, err := rardecode.NewReader(bytes.NewReader(archiveFile), "")
+		if err != nil {
+			return nil, err
+		}
+		for {
+			hdr, errNext := r.Next()
+			if errNext == io.EOF {
+				break
+			}
+			if errNext != nil {
+				continue
+			}
+			filenames = append(filenames, hdr.Name)
+		}
 	}
 	return filenames, nil
 }
 
 func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, filename, toFilename string) error {
 	fileExt := filepath.Ext(archiveFilename)
+
+	toFilenameFileExt := filepath.Ext(toFilename)
+	toFilename = toFilename[0 : len(toFilename)-len(toFilenameFileExt)]
+	zipFileExt := filepath.Ext(filename)
+	toFilename = fmt.Sprintf("%s%s", toFilename, zipFileExt)
+
 	switch fileExt {
 	case ".zip":
 		r, err := zip.NewReader(bytes.NewReader(archiveFile), int64(len(archiveFile)))
@@ -254,10 +292,6 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 		if file == nil {
 			return fmt.Errorf("file not exist")
 		}
-		toFilenameFileExt := filepath.Ext(toFilename)
-		toFilename = toFilename[0 : len(toFilename)-len(toFilenameFileExt)]
-		zipFileExt := filepath.Ext(file.Name)
-		toFilename = fmt.Sprintf("%s%s", toFilename, zipFileExt)
 
 		rc, errOpen := file.Open()
 		if errOpen != nil {
@@ -278,6 +312,67 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 			return err
 		}
 		return nil
+	case ".7z":
+		r, err := go7z.NewReader(bytes.NewReader(archiveFile), int64(len(archiveFile)))
+		if err != nil {
+			return err
+		}
+		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0x644)
+		if errOpenFile != nil {
+			return errOpenFile
+		}
+		defer func() {
+			if errClose := f.Close(); errClose != nil {
+				panic(errClose)
+			}
+		}()
+
+		for {
+			hdr, errNext := r.Next()
+			if errNext == io.EOF {
+				break
+			}
+			if errNext != nil {
+				continue
+			}
+			if hdr.Name == filename {
+				if _, errCopy := io.Copy(f, r); errCopy != nil {
+					return errCopy
+				}
+				return nil
+			}
+		}
+	case ".rar":
+		r, err := rardecode.NewReader(bytes.NewReader(archiveFile), "")
+		if err != nil {
+			return err
+		}
+		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0x644)
+		if errOpenFile != nil {
+			return errOpenFile
+		}
+		defer func() {
+			if errClose := f.Close(); errClose != nil {
+				panic(errClose)
+			}
+		}()
+
+		for {
+			hdr, errNext := r.Next()
+			if errNext == io.EOF {
+				break
+			}
+			if errNext != nil {
+				continue
+			}
+			if hdr.Name == filename {
+				if _, errCopy := io.Copy(f, r); errCopy != nil {
+					return errCopy
+				}
+				return nil
+			}
+		}
+
 	}
 
 	return fmt.Errorf("file not exist")
