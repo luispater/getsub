@@ -25,11 +25,6 @@ import (
 type SubHD struct {
 }
 
-type subHDSubtitleFile struct {
-	Success  bool   `json:"success"`
-	Filedata string `json:"filedata"`
-}
-
 type subHDDownAjax struct {
 	Success bool   `json:"success"`
 	Url     string `json:"url"`
