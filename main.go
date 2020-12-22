@@ -5,13 +5,34 @@ import (
 	"fmt"
 	"github.com/luispater/getsub/libs/vendors"
 	"github.com/manifoldco/promptui"
+	"os"
+	"regexp"
 	"strconv"
 )
 
 func main() {
+	defaultVideoName := os.Args[1]
+
+	videoNameReg, _ := regexp.Compile(`S\d+E\d+`)
+	videoNameIndex := videoNameReg.FindStringIndex(os.Args[1])
+	if len(videoNameIndex) > 0 {
+		defaultVideoName = defaultVideoName[0:videoNameIndex[1]]
+	}
+
+	prompt := promptui.Prompt{
+		Label:   "视频名称",
+		Default: defaultVideoName,
+	}
+
+	keyword, err := prompt.Run()
+
+	if err != nil {
+		fmt.Println("")
+		return
+	}
 
 	subHd := new(vendors.SubHD)
-	result, err := subHd.Search("The.Mandalorian.S02E08")
+	result, err := subHd.Search(keyword)
 	if err != nil {
 		panic(err)
 	}
@@ -27,7 +48,7 @@ func main() {
 		fmt.Print("====================\n")
 	}
 	fmt.Println("")
-	prompt := promptui.Prompt{
+	prompt = promptui.Prompt{
 		Label: "要下载的字幕ID",
 		Validate: func(input string) error {
 			index, errParseInt := strconv.ParseInt(input, 10, 64)
