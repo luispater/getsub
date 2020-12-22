@@ -200,6 +200,7 @@ func (this *SubHD) openChrome(url string) (string, []byte, error) {
 }
 
 func (this *SubHD) GetArchiveFileList(filename string, archiveFile []byte) ([]string, error) {
+	fmt.Println(filename)
 	filenames := make([]string, 0)
 	fileExt := filepath.Ext(filename)
 	switch fileExt {
@@ -317,7 +318,7 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 		if err != nil {
 			return err
 		}
-		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0x644)
+		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 		if errOpenFile != nil {
 			return errOpenFile
 		}
@@ -347,7 +348,7 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 		if err != nil {
 			return err
 		}
-		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0x644)
+		f, errOpenFile := os.OpenFile(toFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 		if errOpenFile != nil {
 			return errOpenFile
 		}
