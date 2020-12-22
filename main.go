@@ -12,10 +12,10 @@ import (
 )
 
 func main() {
-	defaultVideoName := os.Args[1]
+	defaultVideoName := filepath.Base(os.Args[1])
 
 	videoNameReg, _ := regexp.Compile(`S\d+E\d+`)
-	videoNameIndex := videoNameReg.FindStringIndex(os.Args[1])
+	videoNameIndex := videoNameReg.FindStringIndex(defaultVideoName)
 	if len(videoNameIndex) > 0 {
 		defaultVideoName = defaultVideoName[0:videoNameIndex[1]]
 	}
@@ -113,10 +113,13 @@ func main() {
 		panic(err)
 	}
 
-	err = subHd.UnArchiveFile(filename, byteArchiveFile, filenames[promptIndex-1], filepath.Base(filenames[promptIndex-1]))
+	err = subHd.UnArchiveFile(filename, byteArchiveFile, filenames[promptIndex-1], os.Args[1])
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("")
+	fmt.Println("下载完成")
 
 	// fmt.Println(string(byteArchiveFile), err)
 

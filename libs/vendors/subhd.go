@@ -244,6 +244,11 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 			return fmt.Errorf("file not exist")
 		}
 
+		toFilenameFileExt := filepath.Ext(toFilename)
+		toFilename = toFilename[0 : len(toFilename)-len(toFilenameFileExt)]
+		zipFileExt := filepath.Ext(file.Name)
+		toFilename = fmt.Sprintf("%s%s", toFilename, zipFileExt)
+
 		rc, errOpen := file.Open()
 		if errOpen != nil {
 			return errOpen
