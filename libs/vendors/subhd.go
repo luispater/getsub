@@ -207,12 +207,18 @@ func (this *SubHD) GetArchiveFileList(filename string, archiveFile []byte) ([]st
 			return nil, err
 		}
 		for i := 0; i < len(r.File); i++ {
-			length := bytes.NewReader([]byte(r.File[i].Name))
-			decoder := transform.NewReader(length, simplifiedchinese.GB18030.NewDecoder())
-			content, errReadAll := ioutil.ReadAll(decoder)
-			if errReadAll != nil {
-				continue
+			var content []byte
+			if r.File[i].FileHeader.Flags>>11 != 1 {
+				length := bytes.NewReader([]byte(r.File[i].Name))
+				decoder := transform.NewReader(length, simplifiedchinese.GB18030.NewDecoder())
+				content, err = ioutil.ReadAll(decoder)
+				if err != nil {
+					continue
+				}
+			} else {
+				content = []byte(r.File[i].Name)
 			}
+
 			filenames = append(filenames, string(content))
 		}
 	}
@@ -229,11 +235,16 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 		}
 		var file *zip.File
 		for i := 0; i < len(r.File); i++ {
-			length := bytes.NewReader([]byte(r.File[i].Name))
-			decoder := transform.NewReader(length, simplifiedchinese.GB18030.NewDecoder())
-			content, errReadAll := ioutil.ReadAll(decoder)
-			if errReadAll != nil {
-				return errReadAll
+			var content []byte
+			if r.File[i].FileHeader.Flags>>11 != 1 {
+				length := bytes.NewReader([]byte(r.File[i].Name))
+				decoder := transform.NewReader(length, simplifiedchinese.GB18030.NewDecoder())
+				content, err = ioutil.ReadAll(decoder)
+				if err != nil {
+					continue
+				}
+			} else {
+				content = []byte(r.File[i].Name)
 			}
 			if string(content) == filename {
 				file = r.File[i]
@@ -243,7 +254,6 @@ func (this *SubHD) UnArchiveFile(archiveFilename string, archiveFile []byte, fil
 		if file == nil {
 			return fmt.Errorf("file not exist")
 		}
-
 		toFilenameFileExt := filepath.Ext(toFilename)
 		toFilename = toFilename[0 : len(toFilename)-len(toFilenameFileExt)]
 		zipFileExt := filepath.Ext(file.Name)
