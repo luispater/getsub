@@ -6,6 +6,7 @@ import (
 	"github.com/luispater/getsub/libs/vendors"
 	"github.com/manifoldco/promptui"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 )
@@ -70,5 +71,58 @@ func main() {
 		return
 	}
 
-	fmt.Printf("You choose %q\n", promptResult)
+	promptIndex, err := strconv.ParseInt(promptResult, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	filename, byteArchiveFile, err := subHd.DownloadFile(result.Subtitles[promptIndex-1].Id)
+	if err != nil {
+		panic(err)
+	}
+
+	filenames, err := subHd.GetArchiveFileList(filename, byteArchiveFile)
+	for i := 0; i < len(filenames); i++ {
+		fmt.Printf("%d: %s\n", i+1, filepath.Base(filenames[i]))
+	}
+
+	prompt = promptui.Prompt{
+		Label: "要保存的字幕ID",
+		Validate: func(input string) error {
+			index, errParseInt := strconv.ParseInt(input, 10, 64)
+			if errParseInt != nil {
+				return errors.New("请输入正确的ID")
+			}
+
+			if index > int64(len(filenames)) {
+				return errors.New("请输入正确的ID")
+			}
+			return nil
+		},
+	}
+
+	promptResult, err = prompt.Run()
+
+	if err != nil {
+		fmt.Println("")
+		return
+	}
+
+	promptIndex, err = strconv.ParseInt(promptResult, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	err = subHd.UnArchiveFile(filename, byteArchiveFile, filenames[promptIndex-1], filepath.Base(filenames[promptIndex-1]))
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Println(string(byteArchiveFile), err)
+
+	// strPwd, err := os.Getwd()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Printf("You choose %q\n", promptResult)
 }

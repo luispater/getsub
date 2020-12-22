@@ -1,7 +1,7 @@
 package vendors
 
 type SubtitleResult struct {
-	Subtitles   []Subtitle
+	Subtitles []Subtitle
 }
 
 type Subtitle struct {
@@ -20,6 +20,7 @@ type SubtitleExtension struct {
 type Vendor interface {
 	Init() error
 	Search(keyword string) (*SubtitleResult, error)
-	DownloadFile(Id, filePath string) ([]byte, error)
-	UnArchiveFile(archiveFilePath, filename, toFilename string) ([]byte, error)
+	DownloadFile(id string) (string, []byte, error)
+	GetArchiveFileList(filename string, archiveFile []byte) ([]string, error)
+	UnArchiveFile(archiveFilename string, archiveFile []byte, filename, toFilename string) error
 }
