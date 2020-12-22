@@ -125,7 +125,7 @@ func (this *SubHD) DownloadFile(id string) (string, []byte, error) {
 		return "", nil, err
 	}
 
-	fmt.Println(string(byteHtml))
+	// fmt.Println(string(byteHtml))
 	doc, errNewDocumentFromReader := goquery.NewDocumentFromReader(bytes.NewReader(byteHtml))
 	if errNewDocumentFromReader != nil {
 		return "", nil, errNewDocumentFromReader
