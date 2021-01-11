@@ -200,7 +200,6 @@ func (this *SubHD) openChrome(url string) (string, []byte, error) {
 }
 
 func (this *SubHD) GetArchiveFileList(filename string, archiveFile []byte) ([]string, error) {
-	fmt.Println(filename)
 	filenames := make([]string, 0)
 	fileExt := filepath.Ext(filename)
 	switch fileExt {
