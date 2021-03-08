@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/luispater/getsub/common"
@@ -22,6 +23,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SubHD struct {
@@ -158,6 +160,26 @@ func (this *SubHD) DownloadFile(id string) (string, []byte, error) {
 	}
 }
 
+func (this *SubHD) setCookie(name, value, domain, path string, httpOnly, secure bool) chromedp.Action {
+	return chromedp.ActionFunc(func(ctx context.Context) error {
+		expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
+		success, err := network.SetCookie(name, value).
+			WithExpires(&expr).
+			WithDomain(domain).
+			WithPath(path).
+			WithHTTPOnly(httpOnly).
+			WithSecure(secure).
+			Do(ctx)
+		if err != nil {
+			return err
+		}
+		if !success {
+			return fmt.Errorf("could not set cookie %s", name)
+		}
+		return nil
+	})
+}
+
 func (this *SubHD) openChrome(url string) (string, []byte, error) {
 	fileUrl := ""
 	ctx := context.Background()
@@ -184,6 +206,7 @@ func (this *SubHD) openChrome(url string) (string, []byte, error) {
 	})
 
 	errRun := chromedp.Run(ctxNewContext,
+		this.setCookie("ci_session", "r0sffmqur1rama56tlfp8hrkq2vlsrbm", "subhd.tv", "/", true, false),
 		chromedp.Navigate(url),
 		chromedp.WaitVisible(`#TencentCaptcha`),
 	)
